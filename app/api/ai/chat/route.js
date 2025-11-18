@@ -42,9 +42,11 @@ Cart / context products: ${cartContext || 'none'}`,
       maxTokens: 600,
     });
 
+    await prisma.$disconnect();
     return NextResponse.json({ answer });
   } catch (err) {
     console.error('[AI Chat] Error', err);
+    await prisma.$disconnect();
     return new NextResponse('AI chat error', { status: 500 });
   }
 }
