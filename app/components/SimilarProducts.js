@@ -31,10 +31,8 @@ export default function SimilarProducts ({ productId }) {
   }
 
   useEffect(() => { 
-    if (productId) {
-      getRandomProducts() 
-    }
-  }, [productId])
+    getRandomProducts();
+  }, [productId, getRandomProducts])
 
   return ( 
     <>
