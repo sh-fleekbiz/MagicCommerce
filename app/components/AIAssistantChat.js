@@ -9,6 +9,7 @@ export default function AIAssistantChat({ cartProductIds = [] }) {
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -22,11 +23,19 @@ export default function AIAssistantChat({ cartProductIds = [] }) {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages, cartProductIds }),
+        body: JSON.stringify({
+          message: input,
+          sessionId,
+          cartProductIds,
+        }),
       });
       if (!res.ok) throw new Error('Failed to get response');
       const data = await res.json();
-      setMessages([...nextMessages, { role: 'assistant', content: data.answer }]);
+      setSessionId(data.sessionId);
+      setMessages([
+        ...nextMessages,
+        { role: 'assistant', content: data.reply },
+      ]);
     } catch (err) {
       console.error(err);
       setMessages([

@@ -40,6 +40,18 @@ export default function Product({ params }) {
     getProduct() 
   }, [])
 
+  // Log product view analytics
+  useEffect(() => {
+    if (!params?.id) return;
+    fetch("/api/analytics/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "view_product", productId: Number(params.id) }),
+    }).catch(() => {
+      // best-effort only
+    });
+  }, [params.id])
+
   return (
     <>
       <MainLayout>

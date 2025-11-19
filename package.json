@@ -8,10 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "pretest:e2e": "npm run build",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:seed": "ts-node prisma/seed.ts"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -39,7 +42,10 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
-    "prisma": "^5.22.0"
+    "@types/node": "^22.9.0",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
   },
   "packageManager": "pnpm@10.0.0"
 }

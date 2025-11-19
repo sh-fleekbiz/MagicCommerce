@@ -1,69 +1,71 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Prisma schema for Magicommerce
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model Users {
-  id         String    @id @default(uuid())
-  email      String    @unique
-  name       String?
-  picture    String?
-  created_at DateTime? @default(now())
-  addresses  Addresses[]
-  orders     Orders[]
+model Product {
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String
+  url         String       // canonical product URL
+  priceCents  Int
+  imageUrl    String?
+  embeddingId String?      // Azure Search / external vector ID
+  createdAt   DateTime     @default(now())
+
+  orderItems  OrderItem[]
 }
 
-model Addresses {
-  id         Int       @id @default(autoincrement())
-  user_id    String
-  name       String
-  address    String
-  zipcode    String
-  city       String
-  country    String
-  created_at DateTime? @default(now())
-  user       Users     @relation(fields: [user_id], references: [id])
+model Order {
+  id          String      @id @default(uuid())
+  userId      String?
+  totalCents  Int
+  status      String      @default("PENDING")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  @@unique([user_id])
-}
-
-model Orders {
-  id         Int         @id @default(autoincrement())
-  user_id    String
-  stripe_id  String
-  name       String
-  address    String
-  zipcode    String
-  city       String
-  country    String
-  total      Int
-  created_at DateTime?   @default(now())
-  user       Users       @relation(fields: [user_id], references: [id])
-  orderItem  OrderItem[]
+  items       OrderItem[]
 }
 
 model OrderItem {
-  id         Int       @id @default(autoincrement())
-  order_id   Int
-  product_id Int
-  created_at DateTime? @default(now())
-  order      Orders    @relation(fields: [order_id], references: [id])
-  product    Products  @relation(fields: [product_id], references: [id])
+  id             Int      @id @default(autoincrement())
+  orderId        String
+  productId      Int
+  quantity       Int      @default(1)
+  unitPriceCents Int
+
+  order          Order    @relation(fields: [orderId], references: [id])
+  product        Product  @relation(fields: [productId], references: [id])
 }
 
-model Products {
-  id          Int        @id @default(autoincrement())
-  title       String
-  description String
-  url         String
-  price       Int
-  created_at  DateTime?  @default(now())
-  orderItem   OrderItem[]
+model ChatSession {
+  id        String        @id @default(uuid())
+  userId    String?
+  createdAt DateTime      @default(now())
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        Int        @id @default(autoincrement())
+  role      String      // 'user' | 'assistant' | 'system'
+  content   String
+  sessionId String
+  createdAt DateTime    @default(now())
+
+  session   ChatSession @relation(fields: [sessionId], references: [id])
+}
+
+model UserEvent {
+  id        Int       @id @default(autoincrement())
+  userId    String?
+  event     String
+  productId Int?
+  meta      Json?
+  createdAt DateTime @default(now())
 }

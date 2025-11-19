@@ -1,31 +1,53 @@
 // app/api/products/recommendations/route.js
-import prisma from '@/app/libs/Prisma';
-import { NextResponse } from 'next/server';
-import { chatCompletion } from '@/app/libs/azureOpenAI';
+import prisma from "@/app/libs/Prisma";
+import { NextResponse } from "next/server";
+import { chatCompletion } from "@/app/libs/azureOpenAI";
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const productId = searchParams.get('productId');
+    const productId = searchParams.get("productId");
 
     // Get the current product if productId is provided
     let currentProduct = null;
     if (productId) {
-      currentProduct = await prisma.products.findUnique({
+      currentProduct = await prisma.product.findUnique({
         where: { id: Number(productId) },
-        select: { id: true, title: true, description: true, price: true },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          priceCents: true,
+        },
       });
+
+      if (currentProduct) {
+        currentProduct = {
+          ...currentProduct,
+          price: currentProduct.priceCents,
+        };
+      }
     }
 
     // Fetch 15 random products (excluding current product if specified)
-    const productsCount = await prisma.products.count();
+    const productsCount = await prisma.product.count();
     const skip = Math.floor(Math.random() * Math.max(0, productsCount - 15));
-    const candidates = await prisma.products.findMany({
+    const candidatesRaw = await prisma.product.findMany({
       take: 15,
       skip: skip,
       where: productId ? { id: { not: Number(productId) } } : undefined,
-      select: { id: true, title: true, description: true, price: true },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        priceCents: true,
+      },
     });
+
+    const candidates = candidatesRaw.map((p) => ({
+      ...p,
+      price: p.priceCents,
+    }));
 
     // If we have a current product, use AI to select the best recommendations
     if (currentProduct && candidates.length > 0) {
@@ -42,11 +64,11 @@ Candidates: ${JSON.stringify(candidates)}
         const aiAnswer = await chatCompletion({
           messages: [
             {
-              role: 'system',
+              role: "system",
               content:
-                'You are an e-commerce recommendation engine. Respond only with JSON arrays of product IDs.',
+                "You are an e-commerce recommendation engine. Respond only with JSON arrays of product IDs.",
             },
-            { role: 'user', content: aiInstruction },
+            { role: "user", content: aiInstruction },
           ],
           temperature: 0.3,
           maxTokens: 256,
@@ -56,32 +78,32 @@ Candidates: ${JSON.stringify(candidates)}
         const recommendedIds = JSON.parse(aiAnswer);
         
         // Filter candidates to only include recommended products
-        const recommendations = candidates.filter((p) => recommendedIds.includes(p.id)).slice(0, 5);
+        const recommendations = candidates
+          .filter((p) => recommendedIds.includes(p.id))
+          .slice(0, 5);
         
         // If AI gave us less than 5, fill with random from candidates
         if (recommendations.length < 5) {
           const remainingCandidates = candidates.filter(
             (p) => !recommendedIds.includes(p.id)
           );
-          recommendations.push(...remainingCandidates.slice(0, 5 - recommendations.length));
+          recommendations.push(
+            ...remainingCandidates.slice(0, 5 - recommendations.length)
+          );
         }
 
-        await prisma.$disconnect();
         return NextResponse.json(recommendations);
       } catch (aiError) {
-        console.warn('[Recommendations] AI failed, falling back to random', aiError);
+        console.warn("[Recommendations] AI failed, falling back to random", aiError);
         // Fall back to random selection
-        await prisma.$disconnect();
         return NextResponse.json(candidates.slice(0, 5));
       }
     }
 
     // No current product or AI not available, return random
-    await prisma.$disconnect();
     return NextResponse.json(candidates.slice(0, 5));
   } catch (error) {
-    console.error('[Recommendations] Error', error);
-    await prisma.$disconnect();
-    return new NextResponse('Something went wrong', { status: 400 });
+    console.error("[Recommendations] Error", error);
+    return new NextResponse("Something went wrong", { status: 400 });
   }
 }

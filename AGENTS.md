@@ -1,41 +1,60 @@
-# FlashMaster - Agent Development Guide
+# Magicommerce – Agent Development Guide
 
 ## Architecture Overview
 
-FlashMaster is a **Next.js 15 full-stack application** for AI-powered flashcard learning, deployed to Azure Static Web Apps.
+Magicommerce is a **Next.js 15 full-stack application** for AI-native e-commerce, deployed to Azure Container Apps/App Service and wired to the **shared MahumTech Azure platform**.
 
 ### Tech Stack
-- **Frontend**: Next.js 15.3.2, React 19, Radix UI, Tailwind CSS 4, Zustand
-- **Backend**: Next.js API Routes (App Router)
-- **Storage**: IndexedDB (local), Azure Blob Storage (future)
-- **AI**: Azure OpenAI (gpt-5.1, text-embedding-3-large)
-- **Deployment**: Azure Static Web App at flashmaster.shtrial.com
+- **Frontend**: Next.js 15 (App Router), React 18, Tailwind CSS
+- **Backend**: Next.js App Router API routes
+- **Database**: Azure Database for PostgreSQL (`pg-shared-apps-eastus2`, DB: `magicommerce`) via Prisma
+- **AI**: Azure OpenAI (`shared-openai-eastus2` – gpt-5.1-mini, text-embedding-3-small, GPT-4o-mini vision)
+- **Search**: Azure AI Search (`shared-search-standard-eastus2`, index `magicommerce-products`)
+- **Storage**: Azure Blob Storage (`stmahumsharedapps`, container `magicommerce-assets`)
+- **Deployment**: Azure Container Apps / App Service in `rg-shared-web`
 
 ---
 
 ## Shared Azure Platform (MANDATORY)
 
-**CRITICAL**: Always use shared resources from `rg-shared-ai`:
+**CRITICAL**: Always use the shared resources from the MahumTech platform; do **not** create per-app resources.
 
-| Service | Resource | Endpoint |
-|---------|----------|----------|
-| **Azure OpenAI** | `shared-openai-eastus2` | https://shared-openai-eastus2.openai.azure.com/ |
-| **Azure Storage** | `stmahumsharedapps` | https://stmahumsharedapps.blob.core.windows.net/ |
-| **Key Vault** | `kv-mahum-shared-apps` | For secrets management |
+| Service            | Resource                 | Notes                                           |
+|--------------------|--------------------------|-------------------------------------------------|
+| **Azure OpenAI**   | `shared-openai-eastus2`  | Single shared LLM endpoint for all apps        |
+| **Postgres**       | `pg-shared-apps-eastus2` | DB `magicommerce` for this app                 |
+| **Azure Search**   | `shared-search-standard-eastus2` | Index `magicommerce-products`         |
+| **Blob Storage**   | `stmahumsharedapps`      | Container `magicommerce-assets`                |
 
 ### Environment Variables
 
-```env
-# Azure OpenAI (Primary AI Provider)
-AZURE_OPENAI_ENDPOINT=https://shared-openai-eastus2.openai.azure.com/
-AZURE_OPENAI_KEY=<from_key_vault>
-AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-5.1
-AZURE_OPENAI_EMBED_DEPLOYMENT=text-embedding-3-large
+See `.env.example` for the **canonical schema**. Key entries:
 
-# Azure Storage
-AZURE_STORAGE_BLOB_ENDPOINT=https://stmahumsharedapps.blob.core.windows.net/
-AZURE_STORAGE_CONNECTION_STRING=<from_key_vault>
-AZURE_STORAGE_CONTAINER=flashmaster
+```env
+# App identity
+APP_NAME=magicommerce
+APP_ENV=dev
+
+# Azure OpenAI (shared-openai-eastus2)
+AZURE_OPENAI_ENDPOINT=https://shared-openai-eastus2.openai.azure.com/
+AZURE_OPENAI_RESOURCE=shared-openai-eastus2
+AZURE_OPENAI_API_VERSION=2025-01-01-preview
+AZURE_OPENAI_DEPLOYMENT_CHAT=gpt-5.1-mini
+AZURE_OPENAI_DEPLOYMENT_EMBEDDING=text-embedding-3-small
+AZURE_OPENAI_DEPLOYMENT_VISION=gpt-4o-mini
+AZURE_OPENAI_API_KEY=
+
+# Azure AI Search (shared-search-standard-eastus2)
+AZURE_SEARCH_ENDPOINT=https://shared-search-standard-eastus2.search.windows.net
+AZURE_SEARCH_API_KEY=
+AZURE_SEARCH_INDEX_NAME_PRODUCTS=magicommerce-products
+
+# Database (pg-shared-apps-eastus2)
+DATABASE_URL=postgresql://<user>:<pass>@pg-shared-apps-eastus2.postgres.database.azure.com:5432/magicommerce?sslmode=require
+
+# Storage (stmahumsharedapps)
+AZURE_STORAGE_CONNECTION_STRING=
+APP_BLOB_CONTAINER=magicommerce-assets
 ```
 
 ---
@@ -44,27 +63,25 @@ AZURE_STORAGE_CONTAINER=flashmaster
 
 ### Azure OpenAI Integration
 
-```typescript
-// lib/azureOpenAI.ts
-import { AzureOpenAI } from 'openai';
+```ts
+// app/libs/azureOpenAI.ts
+import "server-only";
 
-export const azureOpenAI = new AzureOpenAI({
-  apiKey: process.env.AZURE_OPENAI_KEY!,
-  endpoint: process.env.AZURE_OPENAI_ENDPOINT!,
-  apiVersion: process.env.AZURE_OPENAI_CHAT_API_VERSION || '2025-01-01-preview',
-});
+const endpoint = process.env.AZURE_OPENAI_ENDPOINT!;
+const apiKey = process.env.AZURE_OPENAI_API_KEY!;
+const apiVersion =
+  process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview";
 
-export async function generateFlashcards(content: string) {
-  const response = await azureOpenAI.chat.completions.create({
-    model: process.env.AZURE_OPENAI_CHAT_DEPLOYMENT!,
-    messages: [
-      { role: 'system', content: 'Generate flashcards from the provided content. Return JSON array of {question, answer} pairs.' },
-      { role: 'user', content },
-    ],
-    response_format: { type: 'json_object' },
-  });
-  
-  return JSON.parse(response.choices[0].message.content!);
+const chatDeployment =
+  process.env.AZURE_OPENAI_DEPLOYMENT_CHAT || "gpt-5.1-mini";
+
+export async function chatCompletion(options: {
+  messages: { role: "system" | "user" | "assistant"; content: any }[];
+  maxTokens?: number;
+  temperature?: number;
+}) {
+  const url = `${endpoint}openai/deployments/${chatDeployment}/chat/completions?api-version=${apiVersion}`;
+  // ... see implementation in app/libs/azureOpenAI.ts
 }
 ```
 
@@ -131,15 +148,16 @@ export async function POST(request: NextRequest) {
 
 ❌ **DO NOT USE:**
 - OpenAI public API directly (use Azure OpenAI)
-- Supabase, Firebase (use Azure Storage + future PostgreSQL)
+- Supabase, Firebase (use Azure Postgres + Blob Storage)
 - Google Gemini, Anthropic Claude (use Azure OpenAI)
 - AWS S3, Google Cloud Storage (use Azure Blob Storage)
-- Hardcoded API keys (use environment variables)
+- Hardcoded API keys or connection strings
+- New per-app Azure OpenAI / Postgres resources
 
 ✅ **ALWAYS USE:**
-- Shared Azure platform resources
-- Environment variables from `.env.local` (dev) or Azure Portal (prod)
-- Key Vault references for secrets in production
+- Shared Azure platform resources listed above
+- Environment variables from `.env.local` (dev), GitHub Secrets, and Container App settings in prod
+- For this app, **do not introduce Key Vault usage**; secrets are env-driven
 
 ---
 

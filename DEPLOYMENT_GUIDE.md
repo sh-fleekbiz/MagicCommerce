@@ -1,47 +1,27 @@
 # Deployment Guide for AI Features
 
-This guide walks through deploying MagicCommerce with AI features to Azure Container Apps.
+This guide walks through deploying Magicommerce with AI features to Azure Container Apps **using the shared MahumTech Azure resources**.
 
 ## Prerequisites
 
 1. Azure subscription with:
-   - Azure OpenAI resource
-   - Azure Container Apps environment
-   - Azure Container Registry (or Docker Hub)
+   - Access to the **shared** Azure OpenAI resource `shared-openai-eastus2` in `rg-shared-ai`
+   - Azure Container Apps environment in `rg-shared-web`
+   - Azure Container Registry `acrmahumshared`
 
 2. GitHub repository secrets configured:
    - `AZURE_OPENAI_ENDPOINT`
    - `AZURE_OPENAI_API_KEY`
    - `AZURE_OPENAI_KEY`
 
-## Step 1: Configure Azure OpenAI
+## Step 1: Configure Azure OpenAI (Shared Resource)
 
-### Create Azure OpenAI Resource
+Magicommerce **does not create its own Azure OpenAI resource**. It reuses:
 
-```bash
-# Create resource group (if needed)
-az group create --name rg-magiccommerce --location eastus2
+- Resource group: `rg-shared-ai`
+- Resource name: `shared-openai-eastus2`
 
-# Create Azure OpenAI resource
-az cognitiveservices account create \
-  --name openai-magiccommerce \
-  --resource-group rg-magiccommerce \
-  --kind OpenAI \
-  --sku S0 \
-  --location eastus2
-
-# Get the endpoint
-az cognitiveservices account show \
-  --name openai-magiccommerce \
-  --resource-group rg-magiccommerce \
-  --query "properties.endpoint" -o tsv
-
-# Get the API key
-az cognitiveservices account keys list \
-  --name openai-magiccommerce \
-  --resource-group rg-magiccommerce \
-  --query "key1" -o tsv
-```
+From the Azure Portal, obtain the endpoint and API key for `shared-openai-eastus2` and store them as GitHub secrets and/or app configuration values (see Step 2). Do not create a new OpenAI resource for this app.
 
 ### Deploy Chat Model
 
@@ -60,7 +40,7 @@ az cognitiveservices account deployment create \
 
 ## Step 2: Configure GitHub Secrets
 
-Add these secrets to your GitHub repository:
+Add these secrets to your GitHub repository (or Azure App Config) instead of using Key Vault for this app:
 
 1. Go to: Settings > Secrets and variables > Actions
 2. Add the following secrets:
@@ -296,11 +276,12 @@ az consumption budget create \
 
 ## Security Best Practices
 
-1. **Never commit API keys** to repository
-2. **Use Azure Key Vault** for production secrets
-3. **Implement rate limiting** on AI endpoints
-4. **Monitor for abuse** via Application Insights
-5. **Rotate API keys** regularly
+1. **Never commit API keys** to the repository
+2. Use **GitHub Secrets** and **Azure App Configuration** (or Container App env vars) for production secrets
+3. **Do not introduce new Key Vault dependencies** for this app; secrets are env-driven
+4. **Implement rate limiting** on AI endpoints
+5. **Monitor for abuse** via Application Insights
+6. **Rotate API keys** regularly
 
 ### Implement Rate Limiting
 
