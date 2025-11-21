@@ -8,7 +8,10 @@ Magicommerce is a **Next.js 15 full-stack application** for AI-native e-commerce
 - **Frontend**: Next.js 15 (App Router), React 18, Tailwind CSS
 - **Backend**: Next.js App Router API routes
 - **Database**: Azure Database for PostgreSQL (`pg-shared-apps-eastus2`, DB: `magicommerce`) via Prisma
-- **AI**: Azure OpenAI (`shared-openai-eastus2` – gpt-5.1-mini, text-embedding-3-small, GPT-4o-mini vision)
+- **AI**: Azure OpenAI exclusively (`shared-openai-eastus2`)
+  - Chat: `gpt-5.1-mini`
+  - Embeddings: `text-embedding-3-small`
+  - Vision: `gpt-image-1-mini`
 - **Search**: Azure AI Search (`shared-search-standard-eastus2`, index `magicommerce-products`)
 - **Storage**: Azure Blob Storage (`stmahumsharedapps`, container `magicommerce-assets`)
 - **Deployment**: Azure Container Apps / App Service in `rg-shared-web`
@@ -41,7 +44,7 @@ AZURE_OPENAI_RESOURCE=shared-openai-eastus2
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 AZURE_OPENAI_DEPLOYMENT_CHAT=gpt-5.1-mini
 AZURE_OPENAI_DEPLOYMENT_EMBEDDING=text-embedding-3-small
-AZURE_OPENAI_DEPLOYMENT_VISION=gpt-4o-mini
+AZURE_OPENAI_DEPLOYMENT_VISION=gpt-image-1-mini
 AZURE_OPENAI_API_KEY=
 
 # Azure AI Search (shared-search-standard-eastus2)

@@ -24,8 +24,11 @@
 
 ### Shared AI Resources
 
-- **Azure OpenAI**: shared-openai-eastus2 (https://shared-openai-eastus2.openai.azure.com/)
-- **Azure AI Search**: shared-search-eastus2 (https://shared-search-eastus2.search.windows.net)
+- **Azure OpenAI**: `shared-openai-eastus2` (https://shared-openai-eastus2.openai.azure.com/)
+  - Chat: `gpt-5.1-mini`
+  - Embeddings: `text-embedding-3-small`
+  - Vision: `gpt-image-1-mini`
+- **Azure AI Search**: `shared-search-standard-eastus2` (https://shared-search-standard-eastus2.search.windows.net)
 
 ## GitHub Repository
 
@@ -67,11 +70,24 @@ az containerapp up --name magiccommerce \
 ## Environment Variables (Container Apps)
 
 ```bash
-DATABASE_URL=<postgres-connection-string>
+# Database (Shared Postgres)
+DATABASE_URL=postgresql://<user>:<password>@pg-shared-apps-eastus2.postgres.database.azure.com:5432/magicommerce?sslmode=require
+
+# Azure OpenAI (Standardized deployments)
 AZURE_OPENAI_ENDPOINT=https://shared-openai-eastus2.openai.azure.com/
-AZURE_SEARCH_ENDPOINT=https://shared-search-eastus2.search.windows.net
+AZURE_OPENAI_API_KEY=<from-github-secrets>
+AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-5.1-mini
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-small
+AZURE_OPENAI_IMAGE_DEPLOYMENT=gpt-image-1-mini
+
+# Azure AI Search
+AZURE_SEARCH_ENDPOINT=https://shared-search-standard-eastus2.search.windows.net
+AZURE_SEARCH_API_KEY=<from-github-secrets>
+AZURE_SEARCH_INDEX_NAME_PRODUCTS=magicommerce-products
+
+# NextAuth
 NEXTAUTH_URL=https://magiccommerce.shtrial.com
-NEXTAUTH_SECRET=<from-key-vault>
+NEXTAUTH_SECRET=<from-github-secrets>
 ```
 
 ## Agent Behavior Rules
