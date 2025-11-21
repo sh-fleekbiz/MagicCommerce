@@ -1,0 +1,114 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]:
+        - img [ref=e7]
+        - generic [ref=e9]: Loading...
+      - generic [ref=e11]:
+        - list [ref=e12]:
+          - listitem [ref=e13] [cursor=pointer]:
+            - generic [ref=e15]: JP
+          - listitem [ref=e16] [cursor=pointer]: Daily Deals
+          - listitem [ref=e17] [cursor=pointer]: Help & Contact
+        - list [ref=e18]:
+          - listitem [ref=e19]:
+            - generic [ref=e20] [cursor=pointer]: Ship to Japan
+          - listitem [ref=e23] [cursor=pointer]:
+            - img [ref=e25]
+      - navigation [ref=e28]:
+        - generic [ref=e30]:
+          - link "MagicCommerce MagicCommerce" [ref=e31] [cursor=pointer]:
+            - /url: /
+            - img "MagicCommerce" [ref=e32]
+            - generic [ref=e33]: MagicCommerce
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - button [ref=e38]:
+                - img [ref=e39]
+              - textbox "Search for anything" [ref=e41]
+            - button "Search" [ref=e42]
+            - generic [ref=e43] [cursor=pointer]: Advanced
+      - list [ref=e46]:
+        - listitem [ref=e47] [cursor=pointer]: Home
+        - listitem [ref=e48] [cursor=pointer]: Saved
+        - listitem [ref=e49] [cursor=pointer]: Electronics
+        - listitem [ref=e50] [cursor=pointer]: Motors
+        - listitem [ref=e51] [cursor=pointer]: Fashion
+        - listitem [ref=e52] [cursor=pointer]: Collectables and Art
+        - listitem [ref=e53] [cursor=pointer]: Sports
+        - listitem [ref=e54] [cursor=pointer]: Health & Beauty
+        - listitem [ref=e55] [cursor=pointer]: Industrial Equipment
+        - listitem [ref=e56] [cursor=pointer]: Home & Garden
+        - listitem [ref=e57] [cursor=pointer]: Sell
+      - generic [ref=e59]: "Health: down"
+    - generic [ref=e60]:
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - list [ref=e65]:
+            - button "slide item 1" [ref=e66] [cursor=pointer]
+            - button "slide item 2" [ref=e67] [cursor=pointer]
+            - button "slide item 3" [ref=e68] [cursor=pointer]
+          - button "previous slide / item" [ref=e69] [cursor=pointer]
+          - list [ref=e71]:
+            - listitem [ref=e72]:
+              - generic [ref=e73]:
+                - img "MagicCommerce Mobile App"
+            - listitem [ref=e74]:
+              - generic [ref=e75]:
+                - img "Credits applied to your account"
+            - listitem [ref=e76]:
+              - generic [ref=e77]:
+                - img "Save on shipments"
+            - listitem [ref=e78]:
+              - generic [ref=e79]:
+                - img "MagicCommerce Mobile App"
+            - listitem [ref=e80]:
+              - generic [ref=e81]:
+                - img "Credits applied to your account"
+          - button "next slide / item" [ref=e82] [cursor=pointer]
+        - list [ref=e85]:
+          - button "slide item 1" [ref=e86]:
+            - img "Credits applied to your account"
+          - button "slide item 2" [ref=e87]:
+            - img "Save on shipments"
+          - button "slide item 3" [ref=e88]:
+            - img "MagicCommerce Mobile App"
+      - generic [ref=e90]: Products
+    - generic [ref=e93]:
+      - list [ref=e94]:
+        - listitem [ref=e95]: Buy
+        - listitem [ref=e96] [cursor=pointer]: Registration
+        - listitem [ref=e97] [cursor=pointer]: MagicCommerce Money Back Guarantee
+        - listitem [ref=e98] [cursor=pointer]: Bidding & buying help
+        - listitem [ref=e99] [cursor=pointer]: Stores
+      - list [ref=e100]:
+        - listitem [ref=e101]: Sell
+        - listitem [ref=e102] [cursor=pointer]: Start selling
+        - listitem [ref=e103] [cursor=pointer]: Learn to sell
+        - listitem [ref=e104] [cursor=pointer]: Affiliates
+      - list [ref=e105]:
+        - listitem [ref=e106]: About MagicCommerce
+        - listitem [ref=e107] [cursor=pointer]: Company info
+        - listitem [ref=e108] [cursor=pointer]: News
+        - listitem [ref=e109] [cursor=pointer]: Investors
+        - listitem [ref=e110] [cursor=pointer]: Carears
+        - listitem [ref=e111] [cursor=pointer]: Government relations
+        - listitem [ref=e112] [cursor=pointer]: Policies
+      - list [ref=e113]:
+        - listitem [ref=e114]: Sell
+        - listitem [ref=e115] [cursor=pointer]: Start selling
+        - listitem [ref=e116] [cursor=pointer]: Learn to sell
+        - listitem [ref=e117] [cursor=pointer]: Affiliates
+      - list [ref=e118]:
+        - listitem [ref=e119]: Buy
+        - listitem [ref=e120] [cursor=pointer]: Registration
+        - listitem [ref=e121] [cursor=pointer]: MagicCommerce Money Back Guarantee
+        - listitem [ref=e122] [cursor=pointer]: Bidding & buying help
+        - listitem [ref=e123] [cursor=pointer]: Stores
+  - button "Open Next.js Dev Tools" [ref=e129] [cursor=pointer]:
+    - img [ref=e130]
+  - alert [ref=e133]
+```
