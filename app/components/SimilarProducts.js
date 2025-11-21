@@ -3,16 +3,17 @@
 import { useEffect, useState } from "react"
 import ProductComp from "./Product"
 import { BiLoader } from 'react-icons/bi'
+import { features } from '@/app/libs/config'
 
 export default function SimilarProducts ({ productId }) {
 
   const [products, setProducts] = useState([])
 
-  const getRandomProducts = async () => {
+const getRandomProducts = async () => {
     try {
-      // Use recommendations API if productId is available, otherwise fall back to random
+      // Use enhanced recommendations API if productId is available, otherwise fall back to random
       const endpoint = productId 
-        ? `/api/products/recommendations?productId=${productId}`
+        ? `/api/products/recommendations?productId=${productId}&vector=${features.enhancedRecommendations}`
         : '/api/products/get-random';
       
       const response = await fetch(endpoint)

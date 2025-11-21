@@ -22,9 +22,9 @@ export default function MainLayout() {
         setIsSearching(true)
 
         try {
-            // Use AI search if enabled, otherwise fall back to regular search
+// Use enhanced AI search if enabled, otherwise fall back to regular search
             const searchEndpoint = features.aiSearch
-                ? `/api/products/ai-search?q=${encodeURIComponent(value)}`
+                ? `/api/products/ai-search?q=${encodeURIComponent(value)}&vector=${features.vectorSearch}`
                 : `/api/products/search-by-name/${value}`;
             
             const response = await fetch(searchEndpoint);

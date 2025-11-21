@@ -32,9 +32,10 @@ export async function POST(req: NextRequest) {
       maxTokens: 64,
     });
 
-    const url = new URL(req.url);
+const url = new URL(req.url);
     url.pathname = "/api/products/ai-search";
     url.searchParams.set("q", description);
+    url.searchParams.set("vector", "true"); // Use vector search for better visual matching
 
     const searchRes = await fetch(url.toString(), { method: "GET" });
     if (!searchRes.ok) {

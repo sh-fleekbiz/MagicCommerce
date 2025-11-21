@@ -7,7 +7,7 @@ const apiVersion =
   process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview";
 
 const chatDeployment =
-  process.env.AZURE_OPENAI_DEPLOYMENT_CHAT || "gpt-5.1-mini";
+  process.env.AZURE_OPENAI_DEPLOYMENT_CHAT || "gpt-4o-mini";
 const embedDeployment =
   process.env.AZURE_OPENAI_DEPLOYMENT_EMBEDDING || "text-embedding-3-small";
 const visionDeployment =

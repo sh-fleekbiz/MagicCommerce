@@ -2,11 +2,13 @@
 import prisma from "@/app/libs/Prisma";
 import { NextResponse } from "next/server";
 import { chatCompletion } from "@/app/libs/azureOpenAI";
+import { vectorSearch, generateSearchEmbedding } from "@/app/libs/azureSearch";
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get("productId");
+    const useVectorSearch = searchParams.get("vector") === "true";
 
     // Get the current product if productId is provided
     let currentProduct = null;
@@ -29,6 +31,35 @@ export async function GET(req) {
       }
     }
 
+    // Try vector-based recommendations if enabled and we have a current product
+    if (useVectorSearch && currentProduct) {
+      try {
+        // Generate embedding for current product
+        const embeddingText = `${currentProduct.title} ${currentProduct.description} Price: $${(currentProduct.priceCents / 100).toFixed(2)}`;
+        const embedding = await generateSearchEmbedding(embeddingText);
+        
+        // Find similar products using vector search
+        const vectorResults = await vectorSearch(embedding, 10);
+        
+        // Filter out the current product and take top 5
+        const recommendations = vectorResults
+          .filter(p => p.id !== currentProduct.id)
+          .slice(0, 5)
+          .map(p => ({
+            ...p,
+            price: p.priceCents,
+          }));
+
+        if (recommendations.length > 0) {
+          return NextResponse.json(recommendations);
+        }
+      } catch (vectorError) {
+        console.warn("[Recommendations] Vector search failed, falling back to AI selection:", vectorError);
+        // Continue with AI-based recommendations as fallback
+      }
+    }
+
+    // Fallback: AI-based recommendations
     // Fetch 15 random products (excluding current product if specified)
     const productsCount = await prisma.product.count();
     const skip = Math.floor(Math.random() * Math.max(0, productsCount - 15));

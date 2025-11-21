@@ -4,12 +4,14 @@
 import { useState } from 'react';
 import { AiOutlineClose, AiOutlineMessage } from 'react-icons/ai';
 
-export default function AIAssistantChat({ cartProductIds = [] }) {
+export default function AIAssistantChat({ cartProductIds = [], userId = null }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [sessionId, setSessionId] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [showRecommendations, setShowRecommendations] = useState(false);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -23,19 +25,26 @@ export default function AIAssistantChat({ cartProductIds = [] }) {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+body: JSON.stringify({
           message: input,
           sessionId,
           cartProductIds,
+          userId,
         }),
       });
       if (!res.ok) throw new Error('Failed to get response');
       const data = await res.json();
       setSessionId(data.sessionId);
-      setMessages([
+setMessages([
         ...nextMessages,
         { role: 'assistant', content: data.reply },
       ]);
+      
+      // Update recommendations if provided
+      if (data.recommendations && data.recommendations.length > 0) {
+        setRecommendations(data.recommendations);
+        setShowRecommendations(true);
+      }
     } catch (err) {
       console.error(err);
       setMessages([
@@ -108,6 +117,30 @@ export default function AIAssistantChat({ cartProductIds = [] }) {
                 <div className="inline-block px-3 py-2 rounded-lg bg-gray-100 text-gray-500">
                   <span className="animate-pulse">Thinking...</span>
                 </div>
+              </div>
+)}
+            
+            {/* Product Recommendations */}
+            {showRecommendations && recommendations.length > 0 && (
+              <div className="border-t pt-3 mt-3">
+                <div className="text-xs font-semibold text-gray-600 mb-2">Recommended for you:</div>
+                <div className="space-y-2">
+                  {recommendations.slice(0, 3).map((product) => (
+                    <div key={product.id} className="bg-gray-50 rounded-lg p-2 text-xs">
+                      <div className="font-medium text-gray-800">{product.title}</div>
+                      <div className="text-orange-600 font-semibold">${(product.priceCents / 100).toFixed(2)}</div>
+                      {product.reason && (
+                        <div className="text-gray-500 text-xs mt-1">{product.reason}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setShowRecommendations(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700 mt-2"
+                >
+                  Hide recommendations
+                </button>
               </div>
             )}
           </div>

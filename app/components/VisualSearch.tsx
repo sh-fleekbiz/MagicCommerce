@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BiCamera } from "react-icons/bi";
 import type { Product } from "@/app/libs/types";
+import { features } from "@/app/libs/config";
 
 interface VisualSearchProps {
   onSearch: (products: Product[]) => void;
@@ -36,8 +37,13 @@ export default function VisualSearch({ onSearch }: VisualSearchProps) {
     }
   };
 
+  // Only render if visual search is enabled
+  if (!features.visualSearch) {
+    return null;
+  }
+
   return (
-    <label className="cursor-pointer p-2 hover:bg-gray-100 rounded-full">
+    <label className="cursor-pointer p-2 hover:bg-gray-100 rounded-full" title="Search by image">
       <input
         type="file"
         accept="image/*"

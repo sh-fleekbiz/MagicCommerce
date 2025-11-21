@@ -1,29 +1,77 @@
 # Magicommerce
 
-Magicommerce is an AI-native e-commerce prototype built on **shared Azure resources**:
+Magicommerce is an **AI-native e-commerce platform** built on **shared Azure resources** with advanced artificial intelligence capabilities:
 
-- 🧠 **Azure OpenAI** (`shared-openai-eastus2`) for chat, semantic search, and visual search
+- 🧠 **Azure OpenAI** (`shared-openai-eastus2`) for chat, embeddings, and vision models
+- 🔎 **Azure AI Search** (`shared-search-standard-eastus2`) for vector semantic search
 - 🗄️ **Azure Database for PostgreSQL** (`pg-shared-apps-eastus2`, DB: `magicommerce`)
-- 🔎 **Azure AI Search** (`shared-search-standard-eastus2`, index: `magicommerce-products`)
 - 📦 **Azure Blob Storage** (`stmahumsharedapps`, container: `magicommerce-assets`)
 
-The app demonstrates:
+## ✨ AI-Powered Features
 
-- Vector-powered product discovery (semantic & visual search)
-- Stateful AI shopping assistant (Postgres-backed chat)
-- Event tracking for personalization
+### **Core Search & Discovery**
+- **🔍 Semantic Search** - Vector-powered product discovery with hybrid text+vector search
+- **📸 Visual Search** - Find products using images with AI vision analysis
+- **🤖 Intelligent Search** - AI-enhanced query expansion and semantic matching
+
+### **Personalization & Intelligence**
+- **💬 Enhanced AI Chat** - Conversational assistant with personalized recommendations
+- **🎯 Smart Personalization** - Behavior-driven product suggestions and insights
+- **🛍️ Intelligent Recommendations** - Vector similarity and collaborative filtering
+
+### **Business Intelligence**
+- **💰 AI Price Optimization** - Competitive analysis and revenue impact simulation
+- **✍️ AI Content Generation** - Automated product descriptions and SEO optimization
+- **📊 Advanced Analytics** - User behavior tracking and business insights
+
+## 🚀 Key Capabilities
+
+- **Vector Embeddings** - All products indexed with semantic embeddings for advanced search
+- **Real-time Personalization** - Dynamic recommendations based on user behavior
+- **Multi-modal Search** - Text, image, and semantic search capabilities
+- **Business Intelligence** - AI-powered pricing and content optimization tools
+- **Scalable Architecture** - Built on Azure's shared infrastructure for enterprise scale
 
 **Demo:** https://magiccommerce.shtrial.com
 
 ## Architecture
 
 - **Framework:** Next.js 15 (App Router) + TypeScript
-- **Styling:** Tailwind CSS v3 (migrating toward v4)
+- **Styling:** Tailwind CSS v4
 - **ORM:** Prisma → PostgreSQL (`pg-shared-apps-eastus2`, DB `magicommerce`)
-- **AI:** Azure OpenAI (GPT-5.1-mini, text-embedding-3-small, GPT-4o-mini vision)
-- **Search:** Azure AI Search (`magicommerce-products` index)
-- **Storage:** Azure Blob Storage (`stmahumsharedapps`, container `magicommerce-assets`)
+- **AI Stack:** 
+  - Azure OpenAI (GPT-5.1-mini, text-embedding-3-small, GPT-4o-mini vision)
+  - Azure AI Search (vector embeddings, hybrid search)
+- **Personalization:** Behavior tracking with AI-powered recommendations
+- **Storage:** Azure Blob Storage (`stmahumsharedapps`, container: `magicommerce-assets`)
 - **Infra:** Azure Container Apps / App Service using Next.js standalone output
+
+### **AI Architecture**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    MagicCommerce Frontend                   │
+│  (Next.js 15 + Enhanced AI Components)                      │
+└─────────────────────┬───────────────────────────────────────┘
+                       │
+    ┌──────────────────┼──────────────────┐
+    │                  │                  │
+🤖 AI Chat         🔍 Semantic Search   🎯 Recommendations
+    │                  │                  │
+    ▼                  ▼                  ▼
+┌─────────────────────┴───────────────────────────────────────┐
+│                   Next.js API Routes                       │
+│         (Enhanced with AI & Personalization)                │
+└─────────────────────┬───────────────────────────────────────┘
+                       │
+    ┌──────────────────┼──────────────────┐
+    │                  │                  │
+🧠 Azure OpenAI    🔎 Azure AI Search   🗄️ PostgreSQL
+    │                  │                  │
+    ▼                  ▼                  ▼
+┌─────────────────────┴───────────────────────────────────────┐
+│                   Shared Azure Platform                    │
+└──────────────────────────────────────────────────────────────┘
+```
 
 This repo **must** use the shared MahumTech platform; do **not** create per-app OpenAI or Postgres resources.
 
@@ -50,7 +98,12 @@ pnpm db:seed
 cp .env.example .env.local
 # -> Fill AZURE_OPENAI_*, DATABASE_URL, AZURE_SEARCH_*, AZURE_STORAGE_CONNECTION_STRING
 
-# 4. Run dev
+# 4. Initialize AI embeddings (required for semantic search)
+curl -X POST http://localhost:3000/api/admin/embeddings \
+  -H "Content-Type: application/json" \
+  -d '{"action": "initialize"}'
+
+# 5. Run dev
 pnpm dev
 ```
 
@@ -84,6 +137,8 @@ Secrets used by the pipeline (all set via GitHub secrets, **not** Key Vault):
 - `ACR_USERNAME`, `ACR_PASSWORD`
 - `DATABASE_URL`
 - `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`
+- `AZURE_SEARCH_ENDPOINT`, `AZURE_SEARCH_API_KEY`
+- Enhanced AI feature flags
 - Any app-level secrets matching `.env.example`
 
 ## Contributing
@@ -93,6 +148,43 @@ Secrets used by the pipeline (all set via GitHub secrets, **not** Key Vault):
 3. Commit your changes (`git commit -m 'feat: improve magicommerce experience'`)
 4. Push to the branch (`git push origin feature/magic-change`)
 5. Open a Pull Request
+
+## 📚 Documentation
+
+- **[AI Features Guide](./AI_FEATURES_README.md)** - Comprehensive AI capabilities documentation
+- **[Implementation Summary](./IMPLEMENTATION_SUMMARY.md)** - Technical implementation details
+- **[Testing Guide](./TESTING.md)** - E2E testing procedures
+- **[Deployment Guide](./DEPLOYMENT_GUIDE.md)** - Azure deployment instructions
+
+## 🔧 AI Setup
+
+After deployment, initialize the AI features:
+
+```bash
+# Check Azure Search health
+GET /api/admin/embeddings
+
+# Initialize product embeddings
+POST /api/admin/embeddings
+{
+  "action": "initialize"
+}
+
+# Test price optimization
+POST /api/admin/price-optimization
+{
+  "action": "analyze",
+  "productId": 123
+}
+```
+
+## 📈 AI Metrics
+
+Monitor these key performance indicators:
+- **Search Relevance:** Vector search accuracy and click-through rates
+- **Personalization:** Recommendation conversion rates
+- **AI Engagement:** Chat interaction metrics and satisfaction
+- **Business Impact:** Revenue attribution from AI features
 
 ## License
 
