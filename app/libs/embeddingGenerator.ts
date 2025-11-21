@@ -99,7 +99,10 @@ export async function generateAllProductEmbeddings(): Promise<void> {
             error
           );
           // Continue without embedding for this product
-          productsWithEmbeddings.push(product);
+          productsWithEmbeddings.push({
+            ...product,
+            imageUrl: product.imageUrl ?? undefined,
+          });
         }
       }
 
@@ -155,8 +158,15 @@ export async function updateProductEmbedding(productId: number): Promise<void> {
     }
 
     // Generate embedding
-    const embedding = await generateProductEmbedding(product);
-    const productWithEmbedding = { ...product, embedding };
+    const embedding = await generateProductEmbedding({
+      ...product,
+      imageUrl: product.imageUrl ?? undefined,
+    });
+    const productWithEmbedding = {
+      ...product,
+      imageUrl: product.imageUrl ?? undefined,
+      embedding,
+    };
 
     // Update in Azure Search
     const searchClient = getAzureSearchClient();

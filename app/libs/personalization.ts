@@ -1,7 +1,7 @@
 // app/libs/personalization.ts
-import "server-only";
-import prisma from "./Prisma";
-import { chatCompletion } from "./azureOpenAI";
+import 'server-only';
+import prisma from './Prisma';
+import { chatCompletion } from './azureOpenAI';
 
 interface UserBehavior {
   userId?: string;
@@ -34,14 +34,17 @@ export async function trackUserBehavior(behavior: UserBehavior): Promise<void> {
       },
     });
   } catch (error) {
-    console.error("[Personalization] Failed to track behavior:", error);
+    console.error('[Personalization] Failed to track behavior:', error);
   }
 }
 
 /**
  * Get user's recent behavior for personalization
  */
-export async function getUserBehaviorProfile(userId?: string, limit: number = 20): Promise<UserBehavior[]> {
+export async function getUserBehaviorProfile(
+  userId?: string,
+  limit: number = 20
+): Promise<UserBehavior[]> {
   if (!userId) return [];
 
   try {
@@ -64,7 +67,7 @@ export async function getUserBehaviorProfile(userId?: string, limit: number = 20
       metadata: event.meta,
     }));
   } catch (error) {
-    console.error("[Personalization] Failed to get user profile:", error);
+    console.error('[Personalization] Failed to get user profile:', error);
     return [];
   }
 }
@@ -78,23 +81,24 @@ export async function getUserPreferences(userId?: string): Promise<string[]> {
   try {
     // Get products user has interacted with
     const events = await prisma.userEvent.findMany({
-      where: { userId },
-      include: {
-        product: {
-          select: {
-            title: true,
-            description: true,
-          },
-        },
-      },
+      where: { userId, productId: { not: null } },
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
 
+    // Get product details for the events
+    const productIds = events
+      .map((e) => e.productId)
+      .filter((id): id is number => id !== null);
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { title: true, description: true },
+    });
+
     // Extract keywords from product titles and descriptions
-    const productTexts = events.map((event: any) => 
-      `${event.product.title} ${event.product.description}`
-    ).join(' ');
+    const productTexts = products
+      .map((product: any) => `${product.title} ${product.description}`)
+      .join(' ');
 
     if (!productTexts.trim()) return [];
 
@@ -103,7 +107,8 @@ export async function getUserPreferences(userId?: string): Promise<string[]> {
       messages: [
         {
           role: 'system',
-          content: 'You are an e-commerce personalization engine. Extract 5-10 key product categories or preferences from user behavior. Return only a JSON array of strings.',
+          content:
+            'You are an e-commerce personalization engine. Extract 5-10 key product categories or preferences from user behavior. Return only a JSON array of strings.',
         },
         {
           role: 'user',
@@ -120,7 +125,7 @@ export async function getUserPreferences(userId?: string): Promise<string[]> {
       return [];
     }
   } catch (error) {
-    console.error("[Personalization] Failed to get user preferences:", error);
+    console.error('[Personalization] Failed to get user preferences:', error);
     return [];
   }
 }
@@ -137,7 +142,7 @@ export async function getPersonalizedRecommendations(
   }
 ): Promise<ProductRecommendation[]> {
   const limit = context?.limit || 10;
-  
+
   try {
     // Get user behavior and preferences
     const [userBehavior, userPreferences] = await Promise.all([
@@ -182,7 +187,8 @@ Candidates: ${JSON.stringify(candidates)}
       messages: [
         {
           role: 'system',
-          content: 'You are an e-commerce recommendation engine. Return only valid JSON arrays with product rankings.',
+          content:
+            'You are an e-commerce recommendation engine. Return only valid JSON arrays with product rankings.',
         },
         { role: 'user', content: aiInstruction },
       ],
@@ -190,26 +196,26 @@ Candidates: ${JSON.stringify(candidates)}
       maxTokens: 800,
     });
 
-    let rankings: Array<{id: number, score: number, reason: string}> = [];
+    let rankings: Array<{ id: number; score: number; reason: string }> = [];
     try {
       rankings = JSON.parse(aiResponse);
     } catch {
       // Fallback: return top candidates with default scores
       return candidates.slice(0, limit).map((product: any, index: number) => ({
         ...product,
-        score: 1 - (index * 0.1),
+        score: 1 - index * 0.1,
         reason: 'Popular product',
       }));
     }
 
     // Merge rankings with product data
     const recommendations: ProductRecommendation[] = rankings
-      .filter(ranking => ranking.score > 0.3) // Filter low-confidence recommendations
+      .filter((ranking) => ranking.score > 0.3) // Filter low-confidence recommendations
       .slice(0, limit)
-      .map(ranking => {
+      .map((ranking) => {
         const product = candidates.find((p: any) => p.id === ranking.id);
         if (!product) return null;
-        
+
         return {
           ...product,
           score: ranking.score,
@@ -220,7 +226,10 @@ Candidates: ${JSON.stringify(candidates)}
 
     return recommendations;
   } catch (error) {
-    console.error("[Personalization] Failed to generate recommendations:", error);
+    console.error(
+      '[Personalization] Failed to generate recommendations:',
+      error
+    );
     return [];
   }
 }
@@ -275,7 +284,8 @@ Insights should be helpful observations about the cart.
       messages: [
         {
           role: 'system',
-          content: 'You are an e-commerce cart analyst. Provide helpful recommendations and insights. Return only valid JSON.',
+          content:
+            'You are an e-commerce cart analyst. Provide helpful recommendations and insights. Return only valid JSON.',
         },
         { role: 'user', content: aiInstruction },
       ],
@@ -283,7 +293,7 @@ Insights should be helpful observations about the cart.
       maxTokens: 600,
     });
 
-    let analysis: { recommendations: any[], insights: string[] };
+    let analysis: { recommendations: any[]; insights: string[] };
     try {
       analysis = JSON.parse(aiResponse);
     } catch {
@@ -293,9 +303,11 @@ Insights should be helpful observations about the cart.
     // Get full product data for recommendations
     const recommendedIds = analysis.recommendations.map((r: any) => r.id);
     const recommendedProducts = await prisma.product.findMany({
-      where: { 
-        id: { in: recommendedIds },
-        id: { notIn: cartProductIds }, // Exclude items already in cart
+      where: {
+        id: {
+          in: recommendedIds,
+          notIn: cartProductIds, // Exclude items already in cart
+        },
       },
       select: {
         id: true,
@@ -309,9 +321,9 @@ Insights should be helpful observations about the cart.
     // Merge with AI rankings
     const recommendations: ProductRecommendation[] = analysis.recommendations
       .map((ranking: any) => {
-        const product = recommendedProducts.find(p => p.id === ranking.id);
+        const product = recommendedProducts.find((p) => p.id === ranking.id);
         if (!product) return null;
-        
+
         return {
           ...product,
           score: ranking.score,
@@ -325,7 +337,7 @@ Insights should be helpful observations about the cart.
       insights: analysis.insights || [],
     };
   } catch (error) {
-    console.error("[Personalization] Failed to analyze cart:", error);
+    console.error('[Personalization] Failed to analyze cart:', error);
     return { recommendations: [], insights: [] };
   }
 }
