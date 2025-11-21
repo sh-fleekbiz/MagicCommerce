@@ -88,8 +88,8 @@ export async function getUserPreferences(userId?: string): Promise<string[]> {
 
     // Get product details for the events
     const productIds = events
-      .map((e) => e.productId)
-      .filter((id): id is number => id !== null);
+      .map((e: { productId: number | null }) => e.productId)
+      .filter((id: number | null): id is number => id !== null);
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
       select: { title: true, description: true },
@@ -324,7 +324,9 @@ Insights should be helpful observations about the cart.
     // Merge with AI rankings
     const recommendations: ProductRecommendation[] = analysis.recommendations
       .map((ranking: any) => {
-        const product = recommendedProducts.find((p) => p.id === ranking.id);
+        const product = recommendedProducts.find(
+          (p: { id: number }) => p.id === ranking.id
+        );
         if (!product) return null;
 
         return {

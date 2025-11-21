@@ -1,7 +1,7 @@
 // app/libs/priceOptimization.ts
-import "server-only";
-import prisma from "./Prisma";
-import { chatCompletion } from "./azureOpenAI";
+import 'server-only';
+import prisma from './Prisma';
+import { chatCompletion } from './azureOpenAI';
 
 interface PriceAnalysis {
   productId: number;
@@ -49,8 +49,18 @@ export async function analyzeProductPricing(productId: number): Promise<{
       where: {
         id: { not: productId },
         OR: [
-          { title: { contains: product.title.split(' ')[0], mode: 'insensitive' } },
-          { description: { contains: product.title.split(' ')[0], mode: 'insensitive' } },
+          {
+            title: {
+              contains: product.title.split(' ')[0],
+              mode: 'insensitive',
+            },
+          },
+          {
+            description: {
+              contains: product.title.split(' ')[0],
+              mode: 'insensitive',
+            },
+          },
         ],
       },
       select: {
@@ -66,17 +76,17 @@ export async function analyzeProductPricing(productId: number): Promise<{
 Analyze the pricing for this product and provide optimization recommendations.
 
 Product: ${JSON.stringify({
-  title: product.title,
-  description: product.description,
-  currentPrice: product.priceCents / 100,
-})}
+      title: product.title,
+      description: product.description,
+      currentPrice: product.priceCents / 100,
+    })}
 
 Similar products in market: ${JSON.stringify(
-  similarProducts.map(p => ({
-    title: p.title,
-    price: p.priceCents / 100,
-  }))
-)}
+      similarProducts.map((p: { title: string; priceCents: number }) => ({
+        title: p.title,
+        price: p.priceCents / 100,
+      }))
+    )}
 
 Return a JSON object with:
 {
@@ -110,7 +120,8 @@ Consider factors like:
       messages: [
         {
           role: 'system',
-          content: 'You are an e-commerce pricing analyst. Provide data-driven pricing recommendations. Return only valid JSON.',
+          content:
+            'You are an e-commerce pricing analyst. Provide data-driven pricing recommendations. Return only valid JSON.',
         },
         { role: 'user', content: aiInstruction },
       ],
@@ -142,7 +153,7 @@ Consider factors like:
       insights: analysis.insights || [],
     };
   } catch (error) {
-    console.error("[PriceOptimization] Analysis failed:", error);
+    console.error('[PriceOptimization] Analysis failed:', error);
     throw error;
   }
 }
@@ -177,8 +188,11 @@ export async function getCategoryPricingInsights(category: string): Promise<{
       throw new Error(`No products found for category: ${category}`);
     }
 
-    const prices = products.map(p => p.priceCents);
-    const averagePrice = Math.round(prices.reduce((sum, price) => sum + price, 0) / prices.length);
+    const prices = products.map((p: { priceCents: number }) => p.priceCents);
+    const averagePrice = Math.round(
+      prices.reduce((sum: number, price: number) => sum + price, 0) /
+        prices.length
+    );
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
 
@@ -186,8 +200,16 @@ export async function getCategoryPricingInsights(category: string): Promise<{
     const recentProducts = products.slice(0, Math.floor(products.length / 2));
     const olderProducts = products.slice(Math.floor(products.length / 2));
 
-    const recentAvg = recentProducts.reduce((sum, p) => sum + p.priceCents, 0) / recentProducts.length;
-    const olderAvg = olderProducts.reduce((sum, p) => sum + p.priceCents, 0) / olderProducts.length;
+    const recentAvg =
+      recentProducts.reduce(
+        (sum: number, p: { priceCents: number }) => sum + p.priceCents,
+        0
+      ) / recentProducts.length;
+    const olderAvg =
+      olderProducts.reduce(
+        (sum: number, p: { priceCents: number }) => sum + p.priceCents,
+        0
+      ) / olderProducts.length;
 
     let trend: 'increasing' | 'decreasing' | 'stable';
     const priceChange = (recentAvg - olderAvg) / olderAvg;
@@ -215,7 +237,8 @@ Return a JSON array of 3-5 actionable pricing recommendations as strings.
       messages: [
         {
           role: 'system',
-          content: 'You are an e-commerce pricing strategist. Provide actionable recommendations. Return only a JSON array of strings.',
+          content:
+            'You are an e-commerce pricing strategist. Provide actionable recommendations. Return only a JSON array of strings.',
         },
         { role: 'user', content: aiInstruction },
       ],
@@ -227,7 +250,10 @@ Return a JSON array of 3-5 actionable pricing recommendations as strings.
     try {
       recommendations = JSON.parse(aiResponse);
     } catch {
-      recommendations = ['Monitor competitor pricing regularly', 'Consider seasonal price adjustments'];
+      recommendations = [
+        'Monitor competitor pricing regularly',
+        'Consider seasonal price adjustments',
+      ];
     }
 
     return {
@@ -237,7 +263,7 @@ Return a JSON array of 3-5 actionable pricing recommendations as strings.
       recommendations,
     };
   } catch (error) {
-    console.error("[PriceOptimization] Category insights failed:", error);
+    console.error('[PriceOptimization] Category insights failed:', error);
     throw error;
   }
 }
@@ -269,7 +295,8 @@ export async function simulatePriceImpact(
       throw new Error(`Product ${productId} not found`);
     }
 
-    const priceChange = (newPriceCents - product.priceCents) / product.priceCents;
+    const priceChange =
+      (newPriceCents - product.priceCents) / product.priceCents;
 
     // Use AI to estimate price elasticity and impact
     const aiInstruction = `
@@ -294,7 +321,8 @@ Consider price elasticity based on product type, competition, and value proposit
       messages: [
         {
           role: 'system',
-          content: 'You are an e-commerce revenue analyst. Estimate price elasticity impacts. Return only valid JSON.',
+          content:
+            'You are an e-commerce revenue analyst. Estimate price elasticity impacts. Return only valid JSON.',
         },
         { role: 'user', content: aiInstruction },
       ],
@@ -310,11 +338,15 @@ Consider price elasticity based on product type, competition, and value proposit
       simulation = {
         projectedDemandChange: -priceChange * 1.5, // Basic elasticity assumption
         confidence: 0.5,
-        assumptions: ['Basic price elasticity applied', 'No historical data available'],
+        assumptions: [
+          'Basic price elasticity applied',
+          'No historical data available',
+        ],
       };
     }
 
-    const projectedRevenueChange = (1 + priceChange) * (1 + simulation.projectedDemandChange) - 1;
+    const projectedRevenueChange =
+      (1 + priceChange) * (1 + simulation.projectedDemandChange) - 1;
 
     return {
       projectedRevenueChange,
@@ -323,7 +355,7 @@ Consider price elasticity based on product type, competition, and value proposit
       assumptions: simulation.assumptions || [],
     };
   } catch (error) {
-    console.error("[PriceOptimization] Simulation failed:", error);
+    console.error('[PriceOptimization] Simulation failed:', error);
     throw error;
   }
 }

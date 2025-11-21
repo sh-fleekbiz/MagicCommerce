@@ -60,14 +60,14 @@ importers:
         specifier: ^17.3.1
         version: 17.7.0
       tailwindcss:
-        specifier: ^4.1.12
+        specifier: ^4.1.17
         version: 4.1.17
     devDependencies:
       '@playwright/test':
         specifier: ^1.56.1
         version: 1.56.1
       '@tailwindcss/postcss':
-        specifier: ^4.1.12
+        specifier: ^4.1.17
         version: 4.1.17
       '@types/node':
         specifier: ^22.9.0
