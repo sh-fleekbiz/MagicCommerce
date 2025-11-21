@@ -6,12 +6,13 @@ const apiKey = process.env.AZURE_OPENAI_API_KEY!;
 const apiVersion =
   process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview";
 
+// Standardized deployment names (shared across all portfolio apps)
 const chatDeployment =
-  process.env.AZURE_OPENAI_DEPLOYMENT_CHAT || "gpt-4o-mini";
+  process.env.AZURE_OPENAI_DEPLOYMENT_CHAT || process.env.AZURE_OPENAI_CHAT_DEPLOYMENT || "gpt-5.1-mini";
 const embedDeployment =
-  process.env.AZURE_OPENAI_DEPLOYMENT_EMBEDDING || "text-embedding-3-small";
+  process.env.AZURE_OPENAI_DEPLOYMENT_EMBEDDING || process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT || "text-embedding-3-small";
 const visionDeployment =
-  process.env.AZURE_OPENAI_DEPLOYMENT_VISION || chatDeployment;
+  process.env.AZURE_OPENAI_DEPLOYMENT_VISION || process.env.AZURE_OPENAI_IMAGE_DEPLOYMENT || "gpt-image-1-mini";
 
 if (!endpoint || !apiKey) {
   // Fail fast in dev; in prod this should be set in Azure config
