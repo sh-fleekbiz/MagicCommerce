@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     container_name: magiccommerce-app
     ports:
-      - "8080:8080"
+      - "3200:8080" # MagicCommerce Web (Next.js)
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}

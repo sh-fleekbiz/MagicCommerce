@@ -13,13 +13,35 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
+    /* Primary: Mobile viewports (390x844px - iPhone 12 standard) */
     {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      name: 'mobile-chrome',
+      use: { 
+        ...devices['iPhone 12'], // 390x844px - Standard mobile viewport
+        hasTouch: true,
+        isMobile: true,
+      },
     },
     {
-      name: 'Desktop Chrome',
+      name: 'mobile-safari',
+      use: { 
+        ...devices['iPhone 12'], // 390x844px
+        hasTouch: true,
+        isMobile: true,
+      },
+    },
+    /* Secondary: Desktop browsers */
+    {
+      name: 'desktop-chrome',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'desktop-firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'desktop-safari',
+      use: { ...devices['Desktop Safari'] },
     },
   ],
   webServer: {
