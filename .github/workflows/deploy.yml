@@ -2,7 +2,7 @@ name: Build and Push
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
   workflow_dispatch:
 
 permissions:
@@ -14,16 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          
+
       - name: Log in to ACR
         run: |
           az acr login --name shacrapps
-          
+
       - name: Build and Push app
         uses: docker/build-push-action@v4
         with:
@@ -34,3 +34,9 @@ jobs:
             shacrapps.azurecr.io/magiccommerce-app:${{ github.sha }}
             shacrapps.azurecr.io/magiccommerce-app:latest
 
+      - name: Deploy to Container App
+        run: |
+          az containerapp update \
+            --name magiccommerce-app \
+            --resource-group rg-shared-app \
+            --image shacrapps.azurecr.io/magiccommerce-app:latest
